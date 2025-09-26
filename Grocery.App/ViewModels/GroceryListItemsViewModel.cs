@@ -15,7 +15,7 @@ namespace Grocery.App.ViewModels
         private readonly IGroceryListItemsService _groceryListItemsService;
         private readonly IProductService _productService;
         private readonly IFileSaverService _fileSaverService;
-        
+
         public ObservableCollection<GroceryListItem> MyGroceryListItems { get; set; } = [];
         public ObservableCollection<Product> AvailableProducts { get; set; } = [];
 
@@ -24,11 +24,37 @@ namespace Grocery.App.ViewModels
         [ObservableProperty]
         string myMessage;
 
+        [ObservableProperty]
+        string productSearchText;
+
+        partial void OnProductSearchTextChanged(string value)
+        {
+            SearchProducts(value);
+        }
+
+        [RelayCommand]
+        public void SearchProducts(string searchTerm)
+        {
+            AvailableProducts.Clear();
+            var allProducts = _productService.GetAll();
+            var filtered = allProducts
+                .Where(p => MyGroceryListItems.FirstOrDefault(g => g.ProductId == p.Id) == null && p.Stock > 0);
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                filtered = filtered.Where(p => p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+            }
+
+            foreach (var p in filtered)
+                AvailableProducts.Add(p);
+        }
         public GroceryListItemsViewModel(IGroceryListItemsService groceryListItemsService, IProductService productService, IFileSaverService fileSaverService)
         {
             _groceryListItemsService = groceryListItemsService;
             _productService = productService;
             _fileSaverService = fileSaverService;
+            myMessage = string.Empty;
+            productSearchText = string.Empty;
             Load(groceryList.Id);
         }
 
@@ -43,7 +69,7 @@ namespace Grocery.App.ViewModels
         {
             AvailableProducts.Clear();
             foreach (Product p in _productService.GetAll())
-                if (MyGroceryListItems.FirstOrDefault(g => g.ProductId == p.Id) == null  && p.Stock > 0)
+                if (MyGroceryListItems.FirstOrDefault(g => g.ProductId == p.Id) == null && p.Stock > 0)
                     AvailableProducts.Add(p);
         }
 
@@ -85,6 +111,5 @@ namespace Grocery.App.ViewModels
                 await Toast.Make($"Opslaan mislukt: {ex.Message}").Show(cancellationToken);
             }
         }
-
     }
 }
