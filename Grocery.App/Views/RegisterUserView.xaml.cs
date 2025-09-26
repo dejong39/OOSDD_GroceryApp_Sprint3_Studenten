@@ -54,5 +54,10 @@ namespace Grocery.App.Views
 
             return "Registration successful.";
         }
+
+        public static implicit operator Page(RegisterUserView v)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
