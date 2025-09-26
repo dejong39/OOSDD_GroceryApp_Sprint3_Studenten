@@ -1,8 +1,10 @@
 ﻿
+using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Grocery.Core.Interfaces.Services;
 using Grocery.Core.Models;
+using Grocery.App.Views;
 
 namespace Grocery.App.ViewModels
 {
@@ -20,12 +22,15 @@ namespace Grocery.App.ViewModels
         [ObservableProperty]
         private string loginMessage;
 
+        public ICommand GoToRegisterCommand { get; }
+
         public LoginViewModel(IAuthService authService, GlobalViewModel global)
         { //_authService = App.Services.GetServices<IAuthService>().FirstOrDefault();
             _authService = authService;
             _global = global;
+            GoToRegisterCommand = new RelayCommand(GoToRegister);
         }
-
+        
         [RelayCommand]
         private void Login()
         {
@@ -40,6 +45,10 @@ namespace Grocery.App.ViewModels
             {
                 LoginMessage = "Ongeldige inloggegevens.";
             }
+        }
+        private void GoToRegister()
+        {
+            Application.Current.MainPage = new RegisterUserView();
         }
     }
 }
